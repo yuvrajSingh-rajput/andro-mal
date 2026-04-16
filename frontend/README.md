@@ -1,73 +1,33 @@
-# React + TypeScript + Vite
+# Graphical Interface (React + Vite)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+The UI layer handling fluid `.apk` upload streams, drag-and-drop bounding, and real-time visualization of malicious extraction analytics mapped from our Python processing pipelines.
 
-Currently, two official plugins are available:
+## 🎨 Tech Stack
+- **Framework React 18:** Structured with deep functional hooks.
+- **Vite:** Handled for instant HMR (Hot Module Replacement) and optimized build payloads.
+- **TailwindCSS:** Driving modern aesthetic classes inline, reducing custom CSS footprint.
+- **Lucide-React:** Providing crisp modular iconography.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## 🔗 Architecture Linkage
+This React app is effectively headless unless natively paired with the core engine. You **MUST** define `VITE_API_URL` to point to a running `FastAPI` instance.
 
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+# .env Example
+VITE_API_URL=http://localhost:8000
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## 🛠 Local Development
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+```bash
+# 1. Install precise Node modules
+npm install
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+# 2. Boot into active developer tunneling
+npm run dev
+
+# 3. Output a production minified distribution 
+npm run build
 ```
+
+## Production Deployment (Vercel)
+If lifting this to Vercel, securely bind your root directory settings to `frontend` and overwrite the build framework to natively pick up `Vite` pipelines instead of standard Create-React-App structures. Ensure your environment variable maps perfectly to your Render/AWS backend URL instance!
