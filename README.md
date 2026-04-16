@@ -10,11 +10,17 @@ A high-performance, containerized Enterprise Dashboard for **Hybrid Static & Dyn
 
 ## ⚡ Architecture
 
+<p align="center">
+  <img src="models/plot_01_class_distribution.png" width="80%" alt="Malware Class Distribution">
+</p>
+
 This system leverages a massively separated split-architecture for maximal performance isolation during heavy ML inferences.
 
 1. **Frontend (Vite / React 18):** A beautiful, fluid interface offering drag-and-drop `.apk` uploading, live visual polling, telemetry data readouts, and probability meters.
 2. **Backend (FastAPI / Scikit-Learn):** A headless heavy-lifting engine responsible for parsing binaries, stripping Dalvik opcodes via `Androguard`, and projecting matrices into high-dimensional XGBoost anomaly classifiers.
-3. **Dynamic Sandbox (Android Emulator / Frida):** (Optional Module) Automatically launches Android Virtual Devices to orchestrate behavioral hooking of malware system-calls during live execution phases.
+   <p align="center"><img src="models/plot_02_static_features.png" width="60%" alt="Static Features"></p>
+3. **Dynamic Sandbox (Android Emulator / Frida):** Automatically launches Android Virtual Devices to orchestrate behavioral hooking of malware system-calls during live execution phases.
+   <p align="center"><img src="models/plot_03_dynamic_features.png" width="60%" alt="Dynamic Features"></p>
 
 ---
 
