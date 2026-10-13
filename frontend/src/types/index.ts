@@ -27,4 +27,15 @@ export interface ApkAnalysisResult {
       target_sdk: number;
     };
     analysis_time_ms: number;
-  }
+}
+
+export interface DynamicJobInfo {
+  status: 'pending' | 'running' | 'complete' | 'error';
+  stage?: string;
+  stage_index?: number;
+  total_stages?: number;
+  progress?: number;
+  elapsed_seconds?: number;
+  estimated_seconds?: number;
+  message?: string;
+}

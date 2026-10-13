@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { UploadCard } from './components/UploadCard';
 import { ResultCard } from './components/ResultCard';
 import { uploadApk, pollJobResult } from './api/client';
-import type { ApkAnalysisResult } from './types';
+import type { ApkAnalysisResult, DynamicJobInfo } from './types';
 
 function App() {
   const [result, setResult] = useState<ApkAnalysisResult | null>(null);
@@ -10,6 +10,7 @@ function App() {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [errorStr, setErrorStr] = useState<string | undefined>();
   const [jobId, setJobId] = useState<string | null>(null);
+  const [dynamicJob, setDynamicJob] = useState<DynamicJobInfo | null>(null);
 
   useEffect(() => {
     let timeoutId: number;
@@ -18,21 +19,27 @@ function App() {
       if (!jobId) return;
       try {
         const data = await pollJobResult(jobId);
-        if (data && data.status === 'complete') {
-          setResult(data.result);
-          setIsUploading(false);
-          setJobId(null);
-        } else if (data && data.status === 'error') {
-          setErrorStr(data.message || 'Unknown error during dynamic analysis');
-          setIsUploading(false);
-          setJobId(null);
-        } else {
-          timeoutId = window.setTimeout(poll, 2000);
+        if (data) {
+          setDynamicJob(data);
+          if (data.status === 'complete') {
+            setResult(data.result);
+            setIsUploading(false);
+            setJobId(null);
+            setDynamicJob(null);
+          } else if (data.status === 'error') {
+            setErrorStr(data.message || 'Unknown error during dynamic analysis');
+            setIsUploading(false);
+            setJobId(null);
+            setDynamicJob(null);
+          } else {
+            timeoutId = window.setTimeout(poll, 1500);
+          }
         }
       } catch (err: any) {
         setErrorStr(err.response?.data?.message || 'Polling failed');
         setIsUploading(false);
         setJobId(null);
+        setDynamicJob(null);
       }
     };
 
@@ -48,12 +55,24 @@ function App() {
     setUploadProgress(0);
     setErrorStr(undefined);
     setResult(null);
+    setDynamicJob(null);
 
     try {
       const data = await uploadApk(file, (pct) => setUploadProgress(pct));
       
       if (data.job_id) {
         setJobId(data.job_id);
+        setResult(data.static_result);
+        setDynamicJob({
+          status: 'running',
+          stage: 'Initializing dynamic sandbox...',
+          stage_index: 1,
+          total_stages: 4,
+          progress: 5,
+          elapsed_seconds: 0,
+          estimated_seconds: 90
+        });
+        setIsUploading(false);
       } else if (data.status === 'success') {
         setResult(data);
         setIsUploading(false);
@@ -71,6 +90,8 @@ function App() {
     setResult(null);
     setErrorStr(undefined);
     setUploadProgress(0);
+    setJobId(null);
+    setDynamicJob(null);
   };
 
   return (
@@ -89,7 +110,8 @@ function App() {
         ) : (
           <ResultCard 
             result={result} 
-            onReset={reset} 
+            onReset={reset}
+            dynamicJob={dynamicJob}
           />
         )}
       </div>

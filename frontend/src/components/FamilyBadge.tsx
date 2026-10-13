@@ -1,10 +1,13 @@
 
-import { ShieldAlert, HelpCircle } from 'lucide-react';
+import { ShieldAlert, HelpCircle, Loader2 } from 'lucide-react';
 import { clsx } from 'clsx';
 
 interface FamilyBadgeProps {
   family: string | null;
   isNovel: boolean;
+  elapsedSeconds?: number;
+  estimatedSeconds?: number;
+  isDynamicActive?: boolean;
 }
 
 const colorMap: Record<string, string> = {
@@ -17,8 +20,28 @@ const colorMap: Record<string, string> = {
   "Dropper": "bg-stone-500/20 text-stone-400 border-stone-500/50",
 };
 
-export const FamilyBadge: React.FC<FamilyBadgeProps> = ({ family, isNovel }) => {
-  if (!family) return null;
+export const FamilyBadge: React.FC<FamilyBadgeProps> = ({ family, isNovel, elapsedSeconds, isDynamicActive }) => {
+  if (!family) {
+    if (isDynamicActive) {
+      const formatted = elapsedSeconds !== undefined
+        ? `(${Math.floor(elapsedSeconds / 60)}:${(elapsedSeconds % 60).toString().padStart(2, '0')})`
+        : '...';
+
+      return (
+        <div className="inline-flex items-center px-4 py-1.5 rounded-full border bg-blue-500/15 border-blue-500/40 text-blue-300 text-sm font-semibold shadow-[0_0_15px_rgba(59,130,246,0.2)]">
+          <Loader2 className="w-4 h-4 mr-2 animate-spin text-blue-400 shrink-0" />
+          <span>Dynamic Sandbox Running <span className="font-mono font-bold text-cyan-300">{formatted}</span></span>
+        </div>
+      );
+    }
+
+    return (
+      <div className="inline-flex items-center px-4 py-1.5 rounded-full border bg-red-500/20 border-red-500/40 text-red-400 text-sm font-semibold tracking-wide shadow-[0_0_12px_rgba(239,68,68,0.2)]">
+        <ShieldAlert className="w-4 h-4 mr-2 shrink-0" />
+        MALICIOUS BINARY
+      </div>
+    );
+  }
 
   if (isNovel) {
     return (

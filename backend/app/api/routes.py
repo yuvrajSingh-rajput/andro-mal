@@ -5,7 +5,7 @@ from pathlib import Path
 from fastapi import APIRouter, File, UploadFile, HTTPException, BackgroundTasks
 from fastapi.responses import JSONResponse
 
-from backend.app.config import MODEL_DIR
+from backend.app.config import MODEL_DIR, ENABLE_DYNAMIC_ANALYSIS
 from backend.services.validator import validate_apk_file, validate_feature_array
 from backend.services.feature_extractor import FeatureExtractor
 from backend.services.feature_mapper import FeatureMapper
@@ -29,16 +29,21 @@ async def health():
     return {
         "status": "ok",
         "models_loaded": model_service._loaded,
+        "dynamic_enabled": ENABLE_DYNAMIC_ANALYSIS,
         "version": "1.0.0"
     }
 
 def execute_dynamic_analysis(job_id: str, apk_path: Path, static_result_base: dict):
     job_manager.update_job(job_id, "running")
+    job_manager.update_progress(job_id, "Booting Android sandbox (AVD)...", 1, 10)
+
+    def on_progress(stage: str, stage_index: int, progress: int):
+        job_manager.update_progress(job_id, stage, stage_index, progress)
     
     try:
         package_name = static_result_base.get("apk_info", {}).get("package_name", "unknown")
         
-        dynamic_res = run_dynamic_analysis(apk_path, package_name)
+        dynamic_res = run_dynamic_analysis(apk_path, package_name, progress_callback=on_progress)
         
         if not dynamic_res["success"]:
             logger.warning("dynamic_skipped_or_failed", error=dynamic_res.get("error"))
@@ -48,12 +53,14 @@ def execute_dynamic_analysis(job_id: str, apk_path: Path, static_result_base: di
             
         features = dynamic_res["feature_dict"]
         
+        on_progress("Mapping runtime telemetry into feature matrix...", 4, 90)
         mapper = FeatureMapper(model_service.metadata)
         X_dynamic = mapper.map_dynamic(features)
         
         expected_dyn = model_service.pipeline_dynamic.steps[0][1].n_features_in_
         validate_feature_array(X_dynamic, (1, expected_dyn))
         
+        on_progress("Evaluating XGBoost / LightGBM family classifier...", 4, 95)
         dyn_prediction = model_service.predict_dynamic(X_dynamic)
         
         final_result = {**static_result_base}
@@ -69,7 +76,7 @@ def execute_dynamic_analysis(job_id: str, apk_path: Path, static_result_base: di
         logger.error("background_dynamic_error", error=str(e))
         static_result_base["dynamic_available"] = False
         static_result_base["status"] = "error"
-        job_manager.update_job(job_id, "error", {"message": str(e), "static_result": static_result_base})
+        job_manager.update_job(job_id, "error", message=str(e))
     finally:
         if apk_path.exists():
             try:
@@ -144,7 +151,7 @@ async def analyze(background_tasks: BackgroundTasks, file: UploadFile = File(...
             "analysis_time_ms": analysis_time_ms
         }
         
-        if response["is_malware"]:
+        if response["is_malware"] and ENABLE_DYNAMIC_ANALYSIS:
             job_id = job_manager.create_job()
             
             background_tasks.add_task(

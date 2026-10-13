@@ -44,7 +44,7 @@ class FridaRunner:
     def attach(self, package_name: str) -> None:
         try:
             import frida
-            device = frida.get_usb_device(timeout=10)
+            device = frida.get_usb_device(timeout=2)
             self.session = device.attach(package_name)
             self.script = self.session.create_script(FRIDA_SCRIPT)
             self.script.on("message", self._on_message)

@@ -5,7 +5,7 @@ from backend.utils.logger import logger
 
 class EmulatorController:
     AVD_NAME = "malware_sandbox"
-    BOOT_TIMEOUT = 120
+    BOOT_TIMEOUT = 300
 
     def start(self) -> None:
         try:
@@ -13,8 +13,10 @@ class EmulatorController:
                 logger.info("emulator_already_running")
                 return
 
+            # Launch emulator from clean snapshot if available for instant warm boot
+            cmd = ["emulator", "-avd", self.AVD_NAME, "-no-window", "-no-audio", "-gpu", "host", "-snapshot", "clean"]
             subprocess.Popen(
-                ["emulator", "-avd", self.AVD_NAME, "-no-window", "-no-audio"],
+                cmd,
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL
             )

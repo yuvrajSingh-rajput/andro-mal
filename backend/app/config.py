@@ -1,6 +1,8 @@
+import os
 from pathlib import Path
 
 MODEL_DIR = Path("models/")
+ENABLE_DYNAMIC_ANALYSIS = os.getenv("ENABLE_DYNAMIC_ANALYSIS", "true").lower() == "true"
 MAX_APK_SIZE_MB = 100
 MALWARE_THRESHOLD = 0.5
 FAMILY_CONF_MIN = 0.5

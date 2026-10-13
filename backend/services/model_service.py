@@ -14,20 +14,27 @@ class ModelService:
         self._loaded = False
 
     def load(self, model_dir: Path) -> None:
+        self.model_dir = model_dir
         try:
             self.pipeline_static = joblib.load(model_dir / "pipeline_static_binary.pkl")
-            self.pipeline_dynamic = joblib.load(model_dir / "pipeline_dynamic_family.pkl")
-            self.le_family = joblib.load(model_dir / "label_encoder_family.pkl")
             
             with open(model_dir / "model_metadata.json", "r") as f:
                 self.metadata = json.load(f)
                 
-            if len(self.le_family.classes_) != 13:
-                raise ModelPredictionError("Label encoder does not have 13 classes")
-                
             self._loaded = True
         except Exception as e:
-            raise ModelPredictionError(f"Failed to load models: {str(e)}")
+            raise ModelPredictionError(f"Failed to load static models: {str(e)}")
+
+    def _ensure_dynamic_loaded(self) -> None:
+        if self.pipeline_dynamic is None or self.le_family is None:
+            model_dir = getattr(self, "model_dir", Path("models/"))
+            try:
+                self.pipeline_dynamic = joblib.load(model_dir / "pipeline_dynamic_family.pkl")
+                self.le_family = joblib.load(model_dir / "label_encoder_family.pkl")
+                if len(self.le_family.classes_) != 13:
+                    raise ModelPredictionError("Label encoder does not have 13 classes")
+            except Exception as e:
+                raise ModelPredictionError(f"Failed to load dynamic model on-demand: {str(e)}")
 
     def predict_static(self, X: np.ndarray) -> dict:
         if not self._loaded:
@@ -56,6 +63,7 @@ class ModelService:
         if not self._loaded:
             raise ModelPredictionError("Models not loaded")
             
+        self._ensure_dynamic_loaded()
         expected_shape = self.pipeline_dynamic.steps[0][1].n_features_in_
         if X.shape != (1, expected_shape):
             raise ModelPredictionError(f"Wrong input shape for dynamic model: {X.shape}")
