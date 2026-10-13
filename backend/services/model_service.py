@@ -36,6 +36,14 @@ class ModelService:
             except Exception as e:
                 raise ModelPredictionError(f"Failed to load dynamic model on-demand: {str(e)}")
 
+    def ensure_dynamic_loaded(self) -> None:
+        self._ensure_dynamic_loaded()
+
+    @property
+    def expected_dynamic_features(self) -> int:
+        self._ensure_dynamic_loaded()
+        return self.pipeline_dynamic.steps[0][1].n_features_in_
+
     def predict_static(self, X: np.ndarray) -> dict:
         if not self._loaded:
             raise ModelPredictionError("Models not loaded")

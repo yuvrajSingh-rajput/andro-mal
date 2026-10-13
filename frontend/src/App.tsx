@@ -28,9 +28,12 @@ function App() {
             setDynamicJob(null);
           } else if (data.status === 'error') {
             setErrorStr(data.message || 'Unknown error during dynamic analysis');
+            if (data.result) {
+              setResult(data.result);
+            }
             setIsUploading(false);
             setJobId(null);
-            setDynamicJob(null);
+            setDynamicJob(data);
           } else {
             timeoutId = window.setTimeout(poll, 1500);
           }

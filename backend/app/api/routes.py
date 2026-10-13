@@ -5,7 +5,7 @@ from pathlib import Path
 from fastapi import APIRouter, File, UploadFile, HTTPException, BackgroundTasks
 from fastapi.responses import JSONResponse
 
-from backend.app.config import MODEL_DIR, ENABLE_DYNAMIC_ANALYSIS
+from backend.app.config import MODEL_DIR
 from backend.services.validator import validate_apk_file, validate_feature_array
 from backend.services.feature_extractor import FeatureExtractor
 from backend.services.feature_mapper import FeatureMapper
@@ -29,7 +29,6 @@ async def health():
     return {
         "status": "ok",
         "models_loaded": model_service._loaded,
-        "dynamic_enabled": ENABLE_DYNAMIC_ANALYSIS,
         "version": "1.0.0"
     }
 
@@ -57,7 +56,8 @@ def execute_dynamic_analysis(job_id: str, apk_path: Path, static_result_base: di
         mapper = FeatureMapper(model_service.metadata)
         X_dynamic = mapper.map_dynamic(features)
         
-        expected_dyn = model_service.pipeline_dynamic.steps[0][1].n_features_in_
+        model_service.ensure_dynamic_loaded()
+        expected_dyn = model_service.expected_dynamic_features
         validate_feature_array(X_dynamic, (1, expected_dyn))
         
         on_progress("Evaluating XGBoost / LightGBM family classifier...", 4, 95)
@@ -75,8 +75,9 @@ def execute_dynamic_analysis(job_id: str, apk_path: Path, static_result_base: di
     except Exception as e:
         logger.error("background_dynamic_error", error=str(e))
         static_result_base["dynamic_available"] = False
+        static_result_base["dynamic_error"] = str(e)
         static_result_base["status"] = "error"
-        job_manager.update_job(job_id, "error", message=str(e))
+        job_manager.update_job(job_id, "error", static_result_base, message=str(e))
     finally:
         if apk_path.exists():
             try:
@@ -151,7 +152,7 @@ async def analyze(background_tasks: BackgroundTasks, file: UploadFile = File(...
             "analysis_time_ms": analysis_time_ms
         }
         
-        if response["is_malware"] and ENABLE_DYNAMIC_ANALYSIS:
+        if response["is_malware"]:
             job_id = job_manager.create_job()
             
             background_tasks.add_task(

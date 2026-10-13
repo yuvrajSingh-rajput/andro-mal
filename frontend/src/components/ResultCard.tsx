@@ -12,14 +12,8 @@ export const ResultCard: React.FC<{
   dynamicJob?: DynamicJobInfo | null;
 }> = ({ result, onReset, dynamicJob }) => {
   const isMalware = result.is_malware;
-
-  // In local development (npm run dev), full dynamic sandbox is enabled.
-  // In production builds (Vercel), it defaults to false for seamless UX unless VITE_ENABLE_DYNAMIC_ANALYSIS='true' is provided.
-  const isDynamicEnabled = import.meta.env.VITE_ENABLE_DYNAMIC_ANALYSIS !== undefined
-    ? import.meta.env.VITE_ENABLE_DYNAMIC_ANALYSIS === 'true'
-    : import.meta.env.DEV;
-
-  const isDynamicActive = isDynamicEnabled && !!dynamicJob && dynamicJob.status !== 'complete';
+  const isDynamicActive = !!dynamicJob && (dynamicJob.status === 'pending' || dynamicJob.status === 'running');
+  const isDynamicError = dynamicJob?.status === 'error';
 
   return (
     <div className="bg-card backdrop-blur-md rounded-2xl border border-slate-700/50 shadow-2xl w-full max-w-3xl mx-auto overflow-hidden animate-in fade-in slide-from-bottom-4 duration-500">
@@ -41,19 +35,32 @@ export const ResultCard: React.FC<{
             isNovel={result.is_novel} 
             elapsedSeconds={dynamicJob?.elapsed_seconds}
             estimatedSeconds={dynamicJob?.estimated_seconds}
-            isDynamicActive={isDynamicActive}
+            isRunning={isDynamicActive}
           />
         )}
       </div>
 
       <div className="p-8 space-y-7">
-        {/* Dynamic Sandbox Active Live Progress Panel (Shown locally or when enabled) */}
+        {/* Dynamic Sandbox Active Live Progress Panel */}
         {isDynamicActive && (
           <DynamicProgressPanel job={dynamicJob} />
         )}
 
-        {/* Dynamic Analysis Completed Telemetry Badge (when dynamic analysis has completed) */}
-        {isDynamicEnabled && !isDynamicActive && result.dynamic_available && (
+        {/* Dynamic Sandbox Error Banner if profiling failed */}
+        {isDynamicError && (
+          <div className="rounded-xl border border-amber-500/30 bg-amber-950/20 p-4 flex items-center justify-between text-xs text-amber-300">
+            <div className="flex items-center space-x-2.5">
+              <ShieldAlert className="w-5 h-5 text-amber-400 shrink-0" />
+              <div>
+                <span className="font-semibold text-amber-200">Dynamic Sandbox Notice: </span>
+                <span>{dynamicJob?.message || 'Dynamic sandbox behavioral profiling could not complete. Relying on static ML classification.'}</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Dynamic Analysis Completed Telemetry Badge (when done) */}
+        {!isDynamicActive && !isDynamicError && result.dynamic_available && (
           <div className="rounded-xl border border-emerald-500/30 bg-emerald-950/20 p-4 flex items-center justify-between text-xs text-emerald-300">
             <div className="flex items-center space-x-2.5">
               <Cpu className="w-5 h-5 text-emerald-400 shrink-0" />

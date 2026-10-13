@@ -19,6 +19,5 @@ EXPOSE 8000
 
 ENV PYTHONPATH="/"
 ENV DOCKER_MODE="true"
-ENV ENABLE_DYNAMIC_ANALYSIS="false"
 
 CMD sh -c "uvicorn backend.app.main:app --host 0.0.0.0 --port ${PORT:-8000}"
