@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { UploadCard } from './components/UploadCard';
 import { ResultCard } from './components/ResultCard';
+import { InstallPrompt } from './components/InstallPrompt';
 import { uploadApk, pollJobResult } from './api/client';
 import type { ApkAnalysisResult, DynamicJobInfo } from './types';
 
@@ -118,6 +119,8 @@ function App() {
           />
         )}
       </div>
+
+      <InstallPrompt />
     </div>
   );
 }

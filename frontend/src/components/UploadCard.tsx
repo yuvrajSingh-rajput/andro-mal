@@ -24,6 +24,8 @@ export const UploadCard: React.FC<UploadCardProps> = ({ onUploadStart, isUploadi
     onDrop,
     accept: {
       'application/vnd.android.package-archive': ['.apk'],
+      'application/octet-stream': ['.apk'],
+      'application/x-zip-compressed': ['.apk'],
     },
     maxFiles: 1,
     multiple: false,
@@ -39,6 +41,13 @@ export const UploadCard: React.FC<UploadCardProps> = ({ onUploadStart, isUploadi
   return (
     <div className="bg-card backdrop-blur-md rounded-2xl border border-slate-700/50 p-8 shadow-2xl w-full max-w-xl mx-auto transition-all">
       <div className="text-center mb-8">
+        <div className="flex justify-center mb-4">
+          <img 
+            src="/favicon/android-chrome-192x192.png" 
+            alt="AndroMal Logo" 
+            className="w-16 h-16 rounded-2xl shadow-xl shadow-blue-500/10 object-contain ring-1 ring-slate-700/50 hover:scale-105 transition-transform" 
+          />
+        </div>
         <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-indigo-400">
           Android Malware Sandbox
         </h2>
