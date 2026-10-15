@@ -2,9 +2,43 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --color-bg: #0B0D12;
+  --color-surface: #12151C;
+  --color-surface-2: #171C27;
+  --color-border: #232937;
+  --color-border-strong: #323B55;
+  --color-text: #E7EAF0;
+  --color-muted: #98A0B3;
+  --color-accent: #8AB4FF;
+
+  --color-danger: #F2555A;
+  --color-danger-tint: #1A1216;
+  --color-danger-border: #5A2A30;
+
+  --color-warning: #F5B544;
+  --color-warning-tint: #2B2210;
+  --color-warning-border: #5C4818;
+
+  --color-safe: #3DD68C;
+  --color-safe-tint: #12352A;
+  --color-safe-border: #1B4A3A;
+}
+
 @layer base {
   body {
-    @apply bg-slate-900 text-slate-200 min-h-screen font-sans antialiased;
-    background-image: radial-gradient(circle at 50% 0%, #1e293b 0%, #0f172a 70%);
+    background-color: #0B0D12;
+    color: #E7EAF0;
+    font-family: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, sans-serif;
+    min-height: 100vh;
+    margin: 0;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Custom focus rings conforming to design specs */
+  :focus-visible {
+    outline: 2px solid #8AB4FF;
+    outline-offset: 2px;
   }
 }

@@ -4,6 +4,7 @@ import { ResultCard } from './components/ResultCard';
 import { InstallPrompt } from './components/InstallPrompt';
 import { uploadApk, pollJobResult } from './api/client';
 import type { ApkAnalysisResult, DynamicJobInfo } from './types';
+import { Shield } from 'lucide-react';
 
 function App() {
   const [result, setResult] = useState<ApkAnalysisResult | null>(null);
@@ -39,8 +40,12 @@ function App() {
             timeoutId = window.setTimeout(poll, 1500);
           }
         }
-      } catch (err: any) {
-        setErrorStr(err.response?.data?.message || 'Polling failed');
+      } catch (err: unknown) {
+        const message =
+          err && typeof err === 'object' && 'response' in err
+            ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
+            : undefined;
+        setErrorStr(message || 'Polling failed');
         setIsUploading(false);
         setJobId(null);
         setDynamicJob(null);
@@ -84,8 +89,10 @@ function App() {
         setErrorStr(data.message || 'Analysis failed');
         setIsUploading(false);
       }
-    } catch (err: any) {
-      setErrorStr(err.response?.data?.message || err.message || 'Upload failed');
+    } catch (err: unknown) {
+      const errorObj = err && typeof err === 'object' ? (err as { response?: { data?: { message?: string } }; message?: string }) : null;
+      const message = errorObj?.response?.data?.message || errorObj?.message || 'Upload failed';
+      setErrorStr(message);
       setIsUploading(false);
     }
   };
@@ -99,11 +106,23 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen py-12 px-4 sm:px-6 flex flex-col items-center">
-      <div className="fixed top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-500/20 rounded-full blur-[120px] pointer-events-none" />
-      <div className="fixed bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-indigo-500/10 rounded-full blur-[120px] pointer-events-none" />
-      
-      <div className="relative z-10 w-full max-w-4xl pt-10 flex flex-col justify-center items-center">
+    <div className="min-h-screen bg-bg text-text flex flex-col selection:bg-accent/20 selection:text-text">
+      {/* App shell: slim top bar */}
+      <header className="h-14 border-b border-border bg-surface px-6 flex items-center justify-between shrink-0">
+        <div className="flex items-center gap-2.5">
+          <div className="w-7 h-7 rounded-button bg-surface-2 border border-border flex items-center justify-center text-accent">
+            <Shield className="w-4 h-4" aria-hidden="true" />
+          </div>
+          <span className="font-semibold text-text text-sm tracking-tight">AndroMal</span>
+        </div>
+
+        <span className="text-xs font-mono text-muted">
+          Static + dynamic APK analysis
+        </span>
+      </header>
+
+      {/* Main Content Area */}
+      <main className="flex-1 px-6 py-8 sm:py-12 flex flex-col items-center justify-start">
         {!result ? (
           <UploadCard 
             onUploadStart={handleUploadStart} 
@@ -118,7 +137,7 @@ function App() {
             dynamicJob={dynamicJob}
           />
         )}
-      </div>
+      </main>
 
       <InstallPrompt />
     </div>

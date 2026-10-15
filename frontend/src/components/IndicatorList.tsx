@@ -1,4 +1,6 @@
-
+import React from 'react';
+import { StatRow } from './ui/StatRow';
+import { SectionLabel } from './ui/SectionLabel';
 
 interface Indicators {
   n_permissions: number;
@@ -11,39 +13,102 @@ interface Indicators {
   n_receivers?: number;
 }
 
-export const IndicatorList: React.FC<{ indicators: Indicators, dangerousPerms: string[] }> = ({ indicators, dangerousPerms }) => {
+interface IndicatorListProps {
+  indicators: Indicators;
+  dangerousPerms: string[];
+}
+
+export const IndicatorList: React.FC<IndicatorListProps> = ({
+  indicators,
+  dangerousPerms,
+}) => {
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <StatBox label="Permissions" value={indicators.n_permissions} />
-        <StatBox label="Dangerous" value={indicators.n_dangerous_perms} alert={indicators.n_dangerous_perms > 5} />
-        <StatBox label="Suspicious APIs" value={indicators.n_suspicious_apis} alert={indicators.n_suspicious_apis > 0} />
-        <StatBox label="Native Code" value={indicators.has_native_code ? "Yes" : "No"} />
-        <StatBox label="Activities" value={indicators.n_activities ?? 0} />
-        <StatBox label="Services" value={indicators.n_services ?? 0} />
-        <StatBox label="Receivers" value={indicators.n_receivers ?? 0} />
-        <StatBox label="Dynamic Code" value={indicators.has_dynamic_code ? "Yes" : "No"} alert={indicators.has_dynamic_code === 1} />
+      {/* Group 1: Permissions & APIs */}
+      <div>
+        <SectionLabel className="mb-2">Permissions & APIs</SectionLabel>
+        <div className="divide-y divide-border/80 border-t border-b border-border/80">
+          <StatRow
+            label="Total declared permissions"
+            value={indicators.n_permissions}
+            isRisky={false}
+          />
+          <StatRow
+            label="Dangerous permissions"
+            value={indicators.n_dangerous_perms}
+            isRisky={indicators.n_dangerous_perms > 0}
+            subtext={indicators.n_dangerous_perms > 0 ? 'Requires explicit runtime grant' : undefined}
+          />
+          <StatRow
+            label="Suspicious API references"
+            value={indicators.n_suspicious_apis}
+            isRisky={indicators.n_suspicious_apis > 0}
+            isLast={true}
+          />
+        </div>
       </div>
 
-      {dangerousPerms.length > 0 && (
-        <div className="mt-4">
-          <h4 className="text-sm font-semibold text-slate-300 mb-2">Flagged Permissions</h4>
-          <div className="flex flex-wrap gap-2">
-            {dangerousPerms.map(p => (
-              <span key={p} className="px-2 py-1 bg-red-900/40 text-red-300 text-xs rounded border border-red-800/50 font-mono">
-                {p.split('.').pop()}
+      {/* Flagged Dangerous Permissions Chips if present */}
+      {dangerousPerms && dangerousPerms.length > 0 && (
+        <div className="p-3.5 rounded-button bg-surface-2 border border-border">
+          <span className="text-xs font-mono uppercase tracking-wider text-muted block mb-2 font-medium">
+            Flagged dangerous permissions ({dangerousPerms.length})
+          </span>
+          <div className="flex flex-wrap gap-1.5">
+            {dangerousPerms.map((perm) => (
+              <span
+                key={perm}
+                className="px-2 py-1 bg-danger-tint text-danger text-xs rounded border border-danger-border font-mono"
+              >
+                {perm.split('.').pop()}
               </span>
             ))}
           </div>
         </div>
       )}
+
+      {/* Group 2: Components */}
+      <div>
+        <SectionLabel className="mb-2">Components</SectionLabel>
+        <div className="divide-y divide-border/80 border-t border-b border-border/80">
+          <StatRow
+            label="Activities"
+            value={indicators.n_activities ?? 0}
+            isRisky={false}
+          />
+          <StatRow
+            label="Services"
+            value={indicators.n_services ?? 0}
+            isRisky={false}
+          />
+          <StatRow
+            label="Broadcast receivers"
+            value={indicators.n_receivers ?? 0}
+            isRisky={false}
+            isLast={true}
+          />
+        </div>
+      </div>
+
+      {/* Group 3: Code behavior */}
+      <div>
+        <SectionLabel className="mb-2">Code behavior</SectionLabel>
+        <div className="divide-y divide-border/80 border-t border-b border-border/80">
+          <StatRow
+            label="Native shared libraries (.so)"
+            value={indicators.has_native_code ? 'Yes' : 'No'}
+            isRisky={indicators.has_native_code === 1}
+            subtext={indicators.has_native_code === 1 ? 'Executes compiled C/C++ architecture code' : undefined}
+          />
+          <StatRow
+            label="Dynamic code loading (DexClassLoader / .dex)"
+            value={indicators.has_dynamic_code ? 'Yes' : 'No'}
+            isRisky={indicators.has_dynamic_code === 1}
+            subtext={indicators.has_dynamic_code === 1 ? 'High risk: secondary payloads may load at runtime' : undefined}
+            isLast={true}
+          />
+        </div>
+      </div>
     </div>
   );
 };
-
-const StatBox = ({ label, value, alert = false }: { label: string, value: string | number, alert?: boolean }) => (
-  <div className={`p-3 rounded-xl border ${alert ? 'bg-red-500/5 border-red-500/20' : 'bg-slate-800/40 border-slate-700/50'}`}>
-    <div className="text-xs text-slate-400 mb-1">{label}</div>
-    <div className={`text-lg font-semibold ${alert ? 'text-red-400' : 'text-slate-200'}`}>{value}</div>
-  </div>
-);

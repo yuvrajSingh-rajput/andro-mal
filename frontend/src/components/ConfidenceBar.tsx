@@ -1,4 +1,4 @@
-
+import React from 'react';
 
 interface ConfidenceBarProps {
   malwareProb: number;
@@ -10,26 +10,64 @@ export const ConfidenceBar: React.FC<ConfidenceBarProps> = ({ malwareProb, benig
   const benPct = Math.round(benignProb * 100);
 
   return (
-    <div className="w-full">
-      <div className="flex justify-between text-sm font-medium mb-2">
-        <span className="text-red-400">Malware: {malPct}%</span>
-        <span className="text-emerald-400">Benign: {benPct}%</span>
+    <div className="w-full space-y-4">
+      {/* 48px mono percentage display */}
+      <div className="flex items-baseline justify-between">
+        <div className="flex items-baseline gap-2">
+          <span className="font-mono text-4xl sm:text-[48px] font-semibold text-text tracking-tight tabular-nums">
+            {malPct}%
+          </span>
+          <span className="text-xs font-mono uppercase text-muted tracking-wider">
+            Malware confidence
+          </span>
+        </div>
+
+        <span className="font-mono text-xs text-muted tabular-nums">
+          Benign: {benPct}%
+        </span>
       </div>
-      
-      <div className="h-4 w-full bg-slate-700 rounded-full overflow-hidden flex relative">
-        <div 
-          className="bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)] transition-all duration-1000 ease-out" 
-          style={{ width: `${malPct}%` }} 
+
+      {/* 10px bar: red fill over green remainder with 50% white threshold marker */}
+      <div className="relative">
+        <div
+          role="progressbar"
+          aria-valuenow={malPct}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-label="Malware Probability"
+          className="h-2.5 w-full bg-safe rounded-full overflow-hidden flex relative"
+        >
+          {/* Red fill for malware probability */}
+          <div
+            className="h-full bg-danger transition-all duration-500 ease-out"
+            style={{ width: `${malPct}%` }}
+          />
+        </div>
+
+        {/* Threshold marker at 50% */}
+        <div
+          aria-hidden="true"
+          className="absolute top-0 bottom-0 left-1/2 -translate-x-1/2 w-0.5 bg-white z-10 pointer-events-none"
         />
-        <div 
-          className="bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)] transition-all duration-1000 ease-out" 
-          style={{ width: `${benPct}%` }} 
-        />
-        
-        {/* Threshold marker */}
-        <div className="absolute top-0 bottom-0 left-1/2 w-0.5 bg-white/20 z-10" />
       </div>
-      <div className="text-center mt-1 text-slate-500 text-xs">Threshold: 50%</div>
+
+      {/* Legend below bar */}
+      <div className="flex items-center justify-between text-xs font-mono text-muted pt-1">
+        <div className="flex items-center gap-1.5">
+          <span className="w-2 h-2 rounded-full bg-danger" />
+          <span>Malware</span>
+        </div>
+
+        <div className="flex items-center gap-1.5">
+          <span className="w-1.5 h-1.5 bg-white rounded-full" />
+          <span>Threshold 50%</span>
+        </div>
+
+        <div className="flex items-center gap-1.5">
+          <span className="w-2 h-2 rounded-full bg-safe" />
+          <span>Benign</span>
+        </div>
+      </div>
     </div>
   );
 };
